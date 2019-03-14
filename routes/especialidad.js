@@ -1,41 +1,38 @@
 var express = require('express');
-var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
-//var SEED = require('../config/config').SEED;
 
 var mdAutenticacion = require('../middlewares/autenticacion');
 
 var app = express();
 
-var Usuario = require('../models/usuario');
+var Especialidad = require('../models/especialidad');
 
 // ==========================================
-// Obtener todos los usuarios
+// Obtener todos las Especialidades
 // ==========================================
 app.get('/', (req, res, netx) => {
 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombres apellidoPaterno apellidoMaterno email img role')
+    Especialidad.find({})
         .skip(desde)
         .limit(5)
         .exec(
-            (err, usuarios) => {
+            (err, especialidades) => {
 
                 if (err) {
                     return res.status(500).json({
                         ok: false,
-                        mensaje: 'Error cargando usuarios',
+                        mensaje: 'Error cargando especialidad',
                         errors: err
                     });
                 }
 
-                Usuario.count({}, (err, conteo) => {
+                Especialidad.count({}, (err, conteo) => {
 
                     res.status(200).json({
                         ok: true,
-                        usuarios,
+                        especialidades,
                         total: conteo
                     });
                 })
@@ -44,54 +41,51 @@ app.get('/', (req, res, netx) => {
 });
 
 // ==========================================
-// Actualizar usuario
+// Actualizar Especialidad
 // ==========================================
 app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
     var id = req.params.id;
     var body = req.body;
 
-    Usuario.findById(id, (err, usuario) => {
+    Especialidad.findById(id, (err, especialidad) => {
 
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar especialidad',
                 errors: err
             });
         }
 
-        if (!usuario) {
+        if (!especialidad) {
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'El usuario con el id ' + id + ' no existe!',
-                    errors: { message: 'No existe un usuario con ese ID' }
+                    mensaje: 'La especialidad con el id ' + id + ' no existe!',
+                    errors: { message: 'No existe una especialidad con ese ID' }
                 });
             }
         }
 
-        usuario.nombres = body.nombres;
-        usuario.apellidoPaterno = body.apellidoPaterno;
-        usuario.apellidoMaterno = body.apellidoMaterno;
-        usuario.email = body.email;
-        usuario.role = body.role;
+        especialidad.nombre = body.nombre;
+        especialidad.usuario = req.usuario._id;
+        especialidad.hospital = body.hospital;
+        especialidad.medico = body.medico;
 
-        usuario.save((err, usuarioGuardado) => {
+        especialidad.save((err, especialidadGuardado) => {
 
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'Erro al actualizar usuario',
+                    mensaje: 'Erro al actualizar especialidad',
                     errors: err
                 });
             }
 
-            usuarioGuardado.password = ':)';
-
             res.status(200).json({
                 ok: true,
-                usuario: usuarioGuardado
+                especialidad: especialidadGuardado
             });
 
         });
@@ -101,69 +95,65 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 });
 
 // ==========================================
-// Crear un nuevo usuario
+// Crear una nueva Especialidad
 // ==========================================
 app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
     var body = req.body;
 
-    var usuario = new Usuario({
-        nombres: body.nombres,
-        apellidoPaterno: body.apellidoPaterno,
-        apellidoMaterno: body.apellidoMaterno,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        img: body.img,
-        role: body.role
+    var especialidad = new Especialidad({
+        nombre: body.nombre,
+        usuario: req.usuario._id,
+        medico: body.medico,
+        hospital: body.hospital
     });
 
-    usuario.save((err, usuarioGuardado) => {
+    especialidad.save((err, especialidadGuardado) => {
 
         if (err) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Error al crear usuario',
+                mensaje: 'Error al crear especialidad',
                 errors: err
             });
         }
 
         res.status(201).json({
             ok: true,
-            usuario: usuarioGuardado,
-            usuariotoken: req.usuario
+            especialidad: especialidadGuardado
         });
 
     });
 });
 
 // ==========================================
-// Borrar un usuario por el id
+// Borrar una especialidad por el id
 // ==========================================
 app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
     var id = req.params.id;
 
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    Especialidad.findByIdAndRemove(id, (err, especialidadBorrado) => {
 
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al borrar usuario',
+                mensaje: 'Error al borrar especialidad',
                 errors: err
             });
         }
 
-        if (!usuarioBorrado) {
+        if (!especialidadBorrado) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'No existe un usuario con ese id',
-                errors: { message: 'No existe un usuario con ese id: ' + id }
+                mensaje: 'No existe una especialidad con ese id',
+                errors: { message: 'No existe una especialidad con ese id: ' + id }
             });
         }
 
         res.status(200).json({
             ok: true,
-            usuario: usuarioBorrado
+            especialidad: especialidadBorrado
         });
     })
 });
