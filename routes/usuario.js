@@ -17,7 +17,7 @@ app.get('/', (req, res, netx) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombres apellidoPaterno apellidoMaterno email img role')
+    Usuario.find({}, 'nombres apellidos email img role')
         .skip(desde)
         .limit(5)
         .exec(
@@ -72,8 +72,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         }
 
         usuario.nombres = body.nombres;
-        usuario.apellidoPaterno = body.apellidoPaterno;
-        usuario.apellidoMaterno = body.apellidoMaterno;
+        usuario.apellidos = body.apellidos;
         usuario.email = body.email;
         usuario.role = body.role;
 
@@ -109,8 +108,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
     var usuario = new Usuario({
         nombres: body.nombres,
-        apellidoPaterno: body.apellidoPaterno,
-        apellidoMaterno: body.apellidoMaterno,
+        apellidos: body.apellidos,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10),
         img: body.img,
