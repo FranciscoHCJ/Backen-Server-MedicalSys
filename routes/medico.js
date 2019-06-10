@@ -17,8 +17,9 @@ app.get('/', (req, res, netx) => {
     Medico.find({})
         .skip(desde)
         .limit(5)
-        .populate('usuario', 'nombres email')
+        .populate('usuario', 'nombres apellidos email')
         .populate('hospital')
+        .populate('especialidad')
         .exec(
             (err, medicos) => {
 
@@ -41,6 +42,44 @@ app.get('/', (req, res, netx) => {
             })
 });
 
+// ==========================================
+// Obtener un solo medico
+// ==========================================
+app.get('/:id', (req, res) => {
+
+    var id = req.params.id;
+
+    Medico.findById(id)
+        .populate('usuario', 'nombres email img')
+        .populate('hospital')
+        .populate('especialidad')
+        .exec((err, medico) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar medico',
+                    errors: err
+                });
+            }
+
+            if (!medico) {
+                if (err) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: 'El medico con el id ' + id + ' no existe!',
+                        errors: { message: 'No existe un medico con ese ID' }
+                    });
+                }
+            }
+
+            res.status(200).json({
+                ok: true,
+                medico: medico
+            });
+        })
+
+});
 // ==========================================
 // Actualizar medico
 // ==========================================
@@ -70,8 +109,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         }
 
         medico.nombres = body.nombres;
-        medico.apellidoPaterno = body.apellidoPaterno;
-        medico.apellidoMaterno = body.apellidoMaterno;
+        medico.apellidos = body.apellidos;
         medico.cedula = body.cedula;
         medico.telefono = body.telefono;
         medico.usuario = req.usuario._id;
@@ -108,8 +146,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
     var medico = new Medico({
         nombres: body.nombres,
-        apellidoPaterno: body.apellidoPaterno,
-        apellidoMaterno: body.apellidoMaterno,
+        apellidos: body.apellidos,
         cedula: body.cedula,
         telefono: body.telefono,
         usuario: req.usuario._id,

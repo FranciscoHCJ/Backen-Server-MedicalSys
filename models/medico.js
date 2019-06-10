@@ -5,8 +5,7 @@ var Schema = mongoose.Schema;
 var medicoSchema = new Schema({
 
     nombres: { type: String, required: [true, 'El nombre es necesario'] },
-    apellidoPaterno: { type: String, required: [true, 'El apellido paterno es necesario'] },
-    apellidoMaterno: { type: String, required: [true, 'El apellido materno es necesario'] },
+    apellidos: { type: String, required: [true, 'Los apellidos son necesarios'] },
     cedula: { type: String, required: false },
     img: { type: String, required: false },
     telefono: { type: String, required: false },

@@ -41,9 +41,41 @@ app.get('/', (req, res, netx) => {
 });
 
 // ==========================================
+// Obtener todas las Especialidades
+// ==========================================
+app.get('/todas', (req, res, netx) => {
+
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+
+    Especialidad.find({})
+        .exec(
+            (err, especialidades) => {
+
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error cargando especialidad',
+                        errors: err
+                    });
+                }
+
+                Especialidad.count({}, (err, conteo) => {
+
+                    res.status(200).json({
+                        ok: true,
+                        especialidades,
+                        total: conteo
+                    });
+                })
+
+            })
+});
+
+// ==========================================
 // Actualizar Especialidad
 // ==========================================
-app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_ROLE], (req, res) => {
 
     var id = req.params.id;
     var body = req.body;
@@ -70,8 +102,6 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
         especialidad.nombre = body.nombre;
         especialidad.usuario = req.usuario._id;
-        especialidad.hospital = body.hospital;
-        especialidad.medico = body.medico;
 
         especialidad.save((err, especialidadGuardado) => {
 
@@ -97,15 +127,13 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 // ==========================================
 // Crear una nueva Especialidad
 // ==========================================
-app.post('/', mdAutenticacion.verificaToken, (req, res) => {
+app.post('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_ROLE], (req, res) => {
 
     var body = req.body;
 
     var especialidad = new Especialidad({
         nombre: body.nombre,
         usuario: req.usuario._id,
-        medico: body.medico,
-        hospital: body.hospital
     });
 
     especialidad.save((err, especialidadGuardado) => {
@@ -129,7 +157,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 // ==========================================
 // Borrar una especialidad por el id
 // ==========================================
-app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin_ROLE], (req, res) => {
 
     var id = req.params.id;
 

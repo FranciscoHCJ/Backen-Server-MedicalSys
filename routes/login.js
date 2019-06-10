@@ -19,14 +19,11 @@ const client = new OAuth2Client(CLIENT_ID);
 async function verify(token) {
     const ticket = await client.verifyIdToken({
         idToken: token,
-        audience: CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+        audience: CLIENT_ID,
         // Or, if multiple clients access the backend:
         //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
     });
     const payload = ticket.getPayload();
-    // const userid = payload['sub'];
-    // If request specified a G Suite domain:
-    //const domain = payload['hd'];
 
     return {
         nombres: payload.given_name,
@@ -76,7 +73,8 @@ app.post('/google', async(req, res) => {
                     ok: true,
                     usuario: usuarioDB,
                     token: token,
-                    id: usuarioDB._id
+                    id: usuarioDB._id,
+                    menu: obtenerMenu(usuarioDB.role)
                 });
             }
 
@@ -100,7 +98,8 @@ app.post('/google', async(req, res) => {
                     ok: true,
                     usuario: usuarioDB,
                     token: token,
-                    id: usuarioDB._id
+                    id: usuarioDB._id,
+                    menu: obtenerMenu(usuarioDB.role)
                 });
             });
         }
@@ -130,7 +129,7 @@ app.post('/', (req, res) => {
         if (!usuarioDB) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Credenciales incorrectas - email',
+                mensaje: 'Credenciales incorrectas',
                 errors: err
             });
         }
@@ -138,7 +137,7 @@ app.post('/', (req, res) => {
         if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Credenciales incorrectas - password',
+                mensaje: 'Credenciales incorrectas',
                 errors: err
             });
         }
@@ -151,9 +150,42 @@ app.post('/', (req, res) => {
             ok: true,
             usuario: usuarioDB,
             token: token,
-            id: usuarioDB._id
+            id: usuarioDB._id,
+            menu: obtenerMenu(usuarioDB.role)
         });
     });
 });
+
+
+function obtenerMenu(ROLE) {
+
+    var menu = [{
+            titulo: 'Principal',
+            icono: 'mdi mdi-gauge',
+            submenu: [
+                { titulo: 'Mi Perfil', url: '/perfil' },
+                // { titulo: 'ProgressBar', url: '/progress' },
+                // { titulo: 'Gráficas', url: '/graficas1' },
+            ]
+        },
+        {
+            titulo: 'Mantenimientos',
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+                // { titulo: 'Usuarios', url: '/usuarios' },
+                { titulo: 'Hospitales', url: '/hospitales' },
+                { titulo: 'Medicos', url: '/medicos' },
+                // { titulo: 'Especialidades', url: '/especialidades' },
+            ]
+        }
+    ];
+
+    if (ROLE === 'ADMIN_ROLE') {
+        menu[0].submenu.unshift({ titulo: 'Dashboard', url: '/dashboard' }, { titulo: 'ProgressBar', url: '/progress' }, { titulo: 'Gráficas', url: '/graficas1' });
+        menu[1].submenu.unshift({ titulo: 'Usuarios', url: '/usuarios' }, { titulo: 'Especialidades', url: '/especialidades' });
+    }
+
+    return menu;
+}
 
 module.exports = app;

@@ -7,6 +7,21 @@ var bodyParser = require('body-parser');
 // Inicializar variables
 var app = express();
 
+// CORS
+// app.use(function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     res.header("Access-Control-Allow-Methods", "POST", "GET", "PUT", "DELETE", "OPTIONS");
+//     next();
+// });
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    next();
+});
+
 // Body Parser
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -25,7 +40,10 @@ var imagenesRoutes = require('./routes/imagenes');
 
 
 // Conexión a la base de datos
-mongoose.connection.openUri('mongodb://localhost:27017/hospitalDB', { useNewUrlParser: true, useCreateIndex: true }, (err, res) => {
+mongoose.connect('mongodb+srv://FranciscoHC:Carolinayjuan123*45@cluster0-pbius.mongodb.net/test?retryWrites=true&w=majority', {
+    useNewUrlParser: true,
+    useCreateIndex: true
+}, (err, res) => {
 
     if (err) throw err;
 
@@ -44,7 +62,8 @@ app.use('/img', imagenesRoutes);
 
 app.use('/', appRoutes);
 
+port = process.env.PORT || 3000;
 // Escuchar peticiones
-app.listen(3000, () => {
-    console.log('Express server puerto 3000: \x1b[32m%s\x1b[0m', 'online')
+app.listen(port, () => {
+    console.log(`Express server puerto ${ port }: Servidor online`)
 });
